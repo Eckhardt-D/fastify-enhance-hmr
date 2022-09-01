@@ -4,7 +4,7 @@ import fp from "fastify-plugin";
 import ws from "@fastify/websocket";
 import * as z from "zod";
 
-let sockets = [];
+let connections = [];
 
 const hotReloadWatchOptionsSchema = z.object({
   paths: z.array(z.string()),
@@ -12,8 +12,8 @@ const hotReloadWatchOptionsSchema = z.object({
 });
 
 const fileWatchEventHandler = (_eventType, _filename) => {
-  if (sockets.length > 0) {
-    sockets.forEach((socket) => socket.socket.send("reload"));
+  if (connections.length > 0) {
+    connections.forEach((connection) => connection.socket.send("reload"));
   }
 };
 
@@ -21,7 +21,7 @@ export default fp(async function (fastify, opts) {
   const params = hotReloadWatchOptionsSchema.parse(opts);
 
   if (params.disabled) return;
-  if (params.paths.length < 0) return;
+  if (params.paths.length <= 0) return;
 
   await fastify.register(ws);
 
@@ -29,14 +29,14 @@ export default fp(async function (fastify, opts) {
     const id = randomUUID();
 
     connection.socket.on("message", () => {
-      sockets.push({
+      connections.push({
         id,
         socket: connection.socket,
       });
     });
 
     connection.socket.on("close", () => {
-      sockets = sockets.filter((socket) => socket.id !== id);
+      connections = connections.filter((conn) => conn.id !== id);
     });
   });
 
