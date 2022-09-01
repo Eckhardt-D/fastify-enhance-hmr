@@ -1,8 +1,8 @@
+import { randomUUID } from "node:crypto";
 import { watch } from "node:fs";
 import fp from "fastify-plugin";
 import ws from "@fastify/websocket";
 import * as z from "zod";
-import { randomUUID } from "node:crypto";
 
 let sockets = [];
 
